@@ -1,5 +1,5 @@
 {
-  "name" : "barebones",
+  "name" : "https-fileupload/filedownload",
   "version" : "0.0.0",
   "dependencies" : {
 	"express":"4.10.x",
