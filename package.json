@@ -1,0 +1,7 @@
+{
+  "name" : "barebones",
+  "version" : "0.0.0",
+  "dependencies" : {
+	"express":"4.10.x",
+	"request":"2.47.x"}
+}
