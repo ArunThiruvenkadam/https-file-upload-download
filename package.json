@@ -1,5 +1,5 @@
 {
-  "name" : "https-fileupload/filedownload",
+  "name" : "fileupload-filedownload",
   "version" : "0.0.0",
   "dependencies" : {
 	"express":"4.10.x",
