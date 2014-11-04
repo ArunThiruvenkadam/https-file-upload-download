@@ -3,6 +3,8 @@ var numCPUs = require('os').cpus().length;
 var https = require('https');
 var fs = require('fs');
 var domain = require('domain');
+var logger = require('./log');
+logger.debugLevel = 'warn';
 
 // This line is from the Node.js HTTPS documentation.
 var options = {
@@ -18,12 +20,12 @@ if (cluster.isMaster) {
   }
 
   cluster.on('exit', function(worker, code, signal) {
-    console.log('worker ' + worker.process.pid + ' died');
+    logger.log('worker ' + worker.process.pid + ' died');
   });
 } else {
 	
 	var server = https.createServer(options).listen(5000);
-	console.log("Https server is running on the port: 5000");
+	logger.log("info","Https server is running on the port: 5000");
 	server.on('request', function(req, res) {
 		
 		var d = domain.create();
@@ -33,12 +35,11 @@ if (cluster.isMaster) {
 		
 		d.on('error', function(err) {
 			res.writeHead(500);
-			console.log(err.message);
+			logger.log('error', err.message);
 			res.end(err.message);
 		});
 		
 		d.run(function() {
-			console.log(req.url);
 			switch(req.url) {
 				case "/":
 					displayForm(res);
@@ -61,7 +62,7 @@ function displayForm(res) {
 	res.writeHeader(200, {"Content-Type": "text/html"});
     res.write(
         '<form action="/upload" method="post" enctype="multipart/form-data">'+
-        '<input type="file" name="upload-file">'+
+        '<input type="file" name="upload">'+
         '<input type="submit" value="Upload">'+
         '</form>'
     );
@@ -69,26 +70,34 @@ function displayForm(res) {
 }
 
 function uploadForm(req, res) {
-
-    if(req.method === 'POST'){
-	     
-		var writeFile = fs.createWriteStream("Arun.pdf");
-		req.pipe(writeFile);
-        req.on('end', function(){
-            res.writeHead(200,{"Content-Type": "text/html"});
-			res.write(
-				'<form action="/download" method="get" enctype="multipart/form-data">'+
-				'<input type="submit" value="Download">'+
-				'</form>'
-			);
-            res.end();
-        });
+	
+	if(req.method === 'POST') {
+	
+		var writeData = fs.createWriteStream("Arun.pdf");
+		req.pipe(writeData);
+		req.on('end', function(){
+		res.writeHead(200,{"Content-Type": "text/html"});
+		res.write(
+			'<form action="/download" method="get" enctype="multipart/form-data">'+
+			'<input type="submit" value="Download">'+
+			'</form>'
+		);
+		res.end();
+		});	
 	}
 }
 
+var path = require('path');
+var mime = require('mime');
+
 function fileDownload(req, res) {
-	console.log("Download File");
-	res.writeHead(200,{"Content-Type": "application/pdf"});
+	logger.log("info", "Download File");
+	
+	var file = "Arun.pdf";
+	var filename = path.basename(file);
+	var mimetype = mime.lookup(file);
+	
+	res.writeHead(200,{"Content-Type": mimetype});
 	fs.readFile("Arun.pdf", function (err, content) {
 		res.write(content);
 		res.end();
